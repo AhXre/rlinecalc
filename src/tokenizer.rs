@@ -6,7 +6,6 @@ fn is_operator(ch: char) -> bool {
         return false
     }
 }
-
 // Tokenizes the string to fit the standart of the program
 pub fn tokenize(line: String) -> Vec<String> {
     let mut tokens: Vec<String> = Vec::new();

@@ -1,7 +1,9 @@
 mod tokenizer;
+mod calculator;
 
 use clap::Parser;
 use tokenizer::tokenize;
+use calculator::calculate;
 
 // reads the input line and parses it to the arguments
 #[derive(Parser)]
@@ -15,8 +17,7 @@ fn main() {
     // Tokenize the line gotted from the command call
     let tokens = tokenize(args.operation);
 
-    // Then it prints the tokens
-    for token in tokens {
-        println!("{:?}", token)
-    }
+    let result = calculate(tokens);
+
+    println!("Result: {:?}", result);
 }
