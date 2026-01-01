@@ -2,6 +2,7 @@ use std::iter::Peekable;
 use std::iter::Rev;
 use std::slice::Iter;
 
+use crate::models::DelimiterType;
 use crate::models::Token;
 use crate::models::OperatorType;
 
@@ -27,6 +28,7 @@ fn execute_operator(operator: &OperatorType, operants: &Vec<i32>) -> i32 {
     }
 }
 
+/** Function that makes the three */
 fn make_tree(iter: &mut Peekable<Rev<Iter<Token>>>) -> Operant {
 
     // this could be a single operant and still work
@@ -45,6 +47,18 @@ fn make_tree(iter: &mut Peekable<Rev<Iter<Token>>>) -> Operant {
                     operation.operants.push(value);
                 }
                 return Operant::Operation(operation);
+            },
+            Token::Delimiter(del) => match del {
+                DelimiterType::CloseBraket => {
+                    // we are analizing the tokens in reverse, so this is like opening
+                    iter.next();
+                    operant = Some(make_tree(iter));
+                },
+                DelimiterType::OpenBraket => {
+                    // i hope this breaks the while and not the match
+                    iter.next();
+                    break;
+                }
             },
             Token::Value(val) => {
                 iter.next();
