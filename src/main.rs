@@ -1,5 +1,6 @@
 mod tokenizer;
 mod calculator;
+mod models;
 
 use clap::Parser;
 use tokenizer::tokenize;
@@ -17,7 +18,11 @@ fn main() {
     // Tokenize the line gotted from the command call
     let tokens = tokenize(args.operation);
 
-    let result = calculate(tokens);
+    for token in &tokens {
+        println!("{:?}", token.to_string());
+    }
+
+    let result = calculate(&tokens);
 
     println!("Result: {:?}", result);
 }
