@@ -9,6 +9,8 @@ fn get_token(ch: char) -> Option<Token> {
     return match ch {
         '+' => Some(Token::Operator(OperatorType::Addition)),
         '-' => Some(Token::Operator(OperatorType::Substraction)),
+        '*' => Some(Token::Operator(OperatorType::Multiplication)),
+        '/' => Some(Token::Operator(OperatorType::Division)),
         '(' => Some(Token::Delimiter(DelimiterType::OpenBraket)),
         ')' => Some(Token::Delimiter(DelimiterType::CloseBraket)),
         _ => None,

@@ -25,6 +25,8 @@ fn execute_operator(operator: &OperatorType, operants: &Vec<i32>) -> i32 {
     return match operator {
         OperatorType::Addition => operants[0] + operants[1],
         OperatorType::Substraction => operants[0] - operants[1],
+        OperatorType::Multiplication => operants[0] * operants[1],
+        OperatorType::Division => operants[0] / operants[1]
     }
 }
 

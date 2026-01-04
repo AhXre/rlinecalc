@@ -8,6 +8,8 @@ pub enum DelimiterType {
 pub enum OperatorType {
     Addition,
     Substraction,
+    Multiplication,
+    Division,
 }
 
 pub enum Token {
@@ -31,7 +33,9 @@ impl OperatorType {//
     pub fn to_string(&self) -> String {
         return String::from(match self {
             Self::Addition => "+",
-            Self::Substraction => "-"
+            Self::Substraction => "-",
+            Self::Multiplication => "*",
+            Self::Division => "/",
         })
     }
 }
