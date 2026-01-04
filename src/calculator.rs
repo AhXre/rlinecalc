@@ -1,27 +1,15 @@
+use std::collections::VecDeque;
 use std::iter::Peekable;
-use std::iter::Rev;
 use std::slice::Iter;
 
 use crate::models::DelimiterType;
 use crate::models::Token;
 use crate::models::OperatorType;
 
-const MAX_OPERANTS_SIZE: usize = 3;
-
-struct OperationStruct {
-    operator: Option<OperatorType>,
-    operants: Vec<Operant>
-}
-
-enum Operant {
-    Value(i32),
-    Operation(OperationStruct)
-}
-
 /**
  * This function helps us determine what to do with each operator
  */
-fn execute_operator(operator: &OperatorType, operants: &Vec<i32>) -> i32 {
+fn execute_operator(operator: &OperatorType, operants: &VecDeque<i32>) -> i32 {
     return match operator {
         OperatorType::Addition => operants[0] + operants[1],
         OperatorType::Substraction => operants[0] - operants[1],
@@ -31,94 +19,93 @@ fn execute_operator(operator: &OperatorType, operants: &Vec<i32>) -> i32 {
 }
 
 /** Function that makes the three */
-fn make_tree(iter: &mut Peekable<Rev<Iter<Token>>>) -> Operant {
+fn make_tree(iter: &mut Peekable<Iter<Token>>, dq: &mut VecDeque<Token>) {
 
-    // this could be a single operant and still work
-    let mut operant: Option<Operant> = None;
+    let priority: i32 = if let Some(Token::Operator(operator)) = dq.get(0) { operator.get_priority() } else {0};
 
+    // Now there is no tree but a ordered list (deque) that will contain the order in which one must process the operands
+    //
     while let Some(token) = iter.peek() {
         match token {
-            Token::Operator(op) => {
-                let mut operation = OperationStruct {
-                    operator: Some(*op),
-                    operants: Vec::with_capacity(MAX_OPERANTS_SIZE),
-                };
-                iter.next();
-                operation.operants.push(make_tree(iter));
-                if let Some(value) = operant {
-                    operation.operants.push(value);
-                }
-                return Operant::Operation(operation);
-            },
-            Token::Delimiter(del) => match del {
+            Token::Delimiter(delimiter) => match delimiter {
+                // the one you must detect first is the close braket as we are in reverse
                 DelimiterType::CloseBraket => {
-                    // we are analizing the tokens in reverse, so this is like opening
+                    // maybe return
                     iter.next();
-                    operant = Some(make_tree(iter));
+                    return;
                 },
                 DelimiterType::OpenBraket => {
-                    // i hope this breaks the while and not the match
                     iter.next();
-                    break;
+                    let mut sub_dq: VecDeque<Token> = VecDeque::new();
+                    make_tree(iter, &mut sub_dq);
+                    dq.append(&mut sub_dq);
                 }
             },
-            Token::Value(val) => {
+            Token::Operator(operator) => {
+                if operator.get_priority() < priority {
+                    return;
+                } else if operator.get_priority() > priority {
+                    if let Some(last_token) = dq.pop_back() {
+                        let mut sub_dq: VecDeque<Token> = VecDeque::new();
+                        sub_dq.push_back(Token::Operator(*operator));
+                        if let Token::Value(_) = last_token {
+                            sub_dq.push_back(last_token);
+                        }
+                        iter.next();
+                        make_tree(iter, &mut sub_dq);
+                        dq.append(&mut sub_dq);
+                    } else {
+                        println!("the sintaxis is wrong, maybe the operator is before the operand");
+                        return;
+                    }
+                } else {
+                    dq.push_front(Token::Operator(*operator));
+                    iter.next();
+                }
+            },
+            Token::Value(value) => {
+                dq.push_back(Token::Value(*value));
                 iter.next();
-                operant = Some(Operant::Value(*val));
             }
-        }
-    }
-    if let Some(value) = operant {
-        return value;
-    } else {
-        return Operant::Value(0);
-    }
-}
-
-fn print_tree(root: &Operant) {
-    match root {
-        Operant::Operation(value) => {
-            if let Some(operator) = value.operator {
-                println!("{:?}", operator.to_string());
-            } else {
-                println!("no operator");
-            }
-            for operant in &value.operants {
-                print_tree(operant);
-            }
-        },
-        Operant::Value(value) => {
-            println!("{:?}", value);
         }
     }
 }
 
-fn solve_tree(root: &Operant) -> i32 {
-    match root {
-        Operant::Operation(value) => {
-            let mut operants: Vec<i32> = Vec::with_capacity(MAX_OPERANTS_SIZE);
-            for operant in &value.operants {
-                operants.push(solve_tree(operant));
-            }
-            if let Some(operator) = value.operator {
-                return execute_operator(&operator, &operants);
-            } else {
-                println!("error ahhh: No hay operador");
+fn calculate_with_deque(dq: &VecDeque<Token>) -> i32 {
+    let mut operands: VecDeque<i32> = VecDeque::new();
+    let mut iter_rev = dq.iter().rev();
+    while let Some(token) = iter_rev.next() {
+        match token {
+            Token::Operator(op) => {
+                let mut r_operands = operands.split_off(2);
+                r_operands.push_front(execute_operator(op, &operands));
+                operands = r_operands;
+            },
+            Token::Value(val) => {
+                operands.push_front(*val);
+            },
+            _ => {
+                println!("What's doing a delimiter here?");
                 return 0;
             }
-        },
-        Operant::Value(value) => {
-            return *value;
         }
+    }
+    if let Some(value) = operands.get(0) {
+        return *value;
+    } else {
+        return 0;
     }
 }
 
 pub fn calculate(tokens: &Vec<Token>) -> i32 {
-    let root: Operant = make_tree(&mut tokens.iter().rev().peekable());
+    let mut deque: VecDeque<Token> = VecDeque::new();
+    make_tree(&mut tokens.iter().peekable(), &mut deque);
 
     println!("Tree: ");
-    print_tree(&root);
-    println!("--------");
+    for token in &deque {
+        print!("{:?},", token.to_string());
+    }
+    println!("\n--------");
 
-    return solve_tree(&root);
+    return calculate_with_deque(&deque);
 }

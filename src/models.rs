@@ -38,6 +38,14 @@ impl OperatorType {//
             Self::Division => "/",
         })
     }
+    pub fn get_priority(&self) -> i32 {
+        return match self {
+            Self::Addition => 0,
+            Self::Substraction => 0,
+            Self::Multiplication => 1,
+            Self::Division => 1
+        }
+    }
 }
 
 impl Token {
