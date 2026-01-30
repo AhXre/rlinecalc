@@ -9,7 +9,7 @@ use crate::models::OperatorType;
 /**
  * This function helps us determine what to do with each operator
  */
-fn execute_operator(operator: &OperatorType, operants: &VecDeque<i32>) -> i32 {
+fn execute_operator(operator: &OperatorType, operants: &VecDeque<f64>) -> f64 {
     return match operator {
         OperatorType::Addition => operants[0] + operants[1],
         OperatorType::Substraction => operants[0] - operants[1],
@@ -71,8 +71,8 @@ fn make_tree(iter: &mut Peekable<Iter<Token>>, dq: &mut VecDeque<Token>) {
     }
 }
 
-fn calculate_with_deque(dq: &VecDeque<Token>) -> i32 {
-    let mut operands: VecDeque<i32> = VecDeque::new();
+fn calculate_with_deque(dq: &VecDeque<Token>) -> f64 {
+    let mut operands: VecDeque<f64> = VecDeque::new();
     let mut iter_rev = dq.iter().rev();
     while let Some(token) = iter_rev.next() {
         match token {
@@ -86,18 +86,18 @@ fn calculate_with_deque(dq: &VecDeque<Token>) -> i32 {
             },
             _ => {
                 println!("What's doing a delimiter here?");
-                return 0;
+                return 0.0;
             }
         }
     }
     if let Some(value) = operands.get(0) {
         return *value;
     } else {
-        return 0;
+        return 0.0;
     }
 }
 
-pub fn calculate(tokens: &Vec<Token>) -> i32 {
+pub fn calculate(tokens: &Vec<Token>) -> f64 {
     let mut deque: VecDeque<Token> = VecDeque::new();
     make_tree(&mut tokens.iter().peekable(), &mut deque);
 

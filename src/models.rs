@@ -15,7 +15,7 @@ pub enum OperatorType {
 pub enum Token {
     Operator(OperatorType),
     Delimiter(DelimiterType),
-    Value(i32)
+    Value(f64)
 }
 
 // Implementations
